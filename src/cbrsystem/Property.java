@@ -4,6 +4,14 @@ public class Property {
     private String name;
     private String value;
     
+    public Property(){
+    }
+    
+    public Property(Property p){
+        this.name = p.getName();
+        this.value = p.getValue();
+    }
+    
     public String getName(){
         return name;
     }

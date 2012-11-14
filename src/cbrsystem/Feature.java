@@ -6,12 +6,20 @@ import java.util.ArrayList;
 public class Feature implements Comparable{
     private String name;
     private String type;
-    private List properties;
+    private List<Property> properties;
     private double informationGain;
     private double weight;
     
     public Feature(){
         properties = new ArrayList<Property>();
+    }
+    
+    public Feature(Feature f){
+        this.properties = f.getPropertiesCopy();
+        this.name = f.getName();
+        this.type = f.getType();
+        this.informationGain = f.getInformationGain();
+        this.weight = f.getWeight();
     }
     
     public String getName(){
@@ -44,6 +52,10 @@ public class Feature implements Comparable{
     
     public List<Property> getProperties(){
         return properties;
+    }
+    
+    public List<Property> getPropertiesCopy(){
+        return new ArrayList<Property>(properties);
     }
     
     public void setInformationGain(double informationGain){

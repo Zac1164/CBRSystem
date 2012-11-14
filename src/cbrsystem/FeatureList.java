@@ -10,12 +10,15 @@ public class FeatureList {
     }
     
     public FeatureList(FeatureList fl){
-        features = fl.getFeatureList();
-        
+        features = fl.getFeatureListCopy(); 
     }
         
     public Map<String,Feature> getFeatureList(){
-        return new HashMap<String, Feature>(features);
+        return features;
+    }
+    
+    public Map<String,Feature> getFeatureListCopy(){
+        return new HashMap<String,Feature>(features);
     }
     
     public void add(Feature feature){

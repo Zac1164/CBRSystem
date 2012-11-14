@@ -9,8 +9,16 @@ public class FactList {
        facts = new ArrayList<Fact>();
    }
    
+   public FactList(FactList fl){
+       this.facts = fl.getFactListCopy();
+   }
+   
    public List<Fact> getFactList(){
        return facts;
+   }
+   
+   public List<Fact> getFactListCopy(){
+       return new ArrayList<Fact>(facts);
    }
    
    public void add(Fact fact){

@@ -32,7 +32,7 @@ class MyCustomFilter extends javax.swing.filechooser.FileFilter {
 }
 
 class MyListCell extends JLabel implements ListCellRenderer {
-
+    
     Case query;
     Object val;
     
@@ -40,12 +40,12 @@ class MyListCell extends JLabel implements ListCellRenderer {
         setOpaque(true);
         this.query = query;
     }
-
+    
     @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         setText(value.toString());
         val = value;
-        if (query.contains(value.toString())){
+        if (query.contains(value.toString()) && !query.find(value.toString()).getValue().equals("")){
             setForeground(Color.BLUE);
         }
         else{
@@ -75,6 +75,9 @@ public class MainWindow extends javax.swing.JFrame {
     private FeatureList featuresNoOutput;
     private Feature[] featuresNoOutputResults2;
     private String actionLog;
+    private String outputAttribute;
+    private Feature output;
+    private DefaultListModel listModel;
     
     public MainWindow() {
         initComponents();
@@ -135,6 +138,8 @@ public class MainWindow extends javax.swing.JFrame {
         jList15 = new javax.swing.JList();
         jLabel37 = new javax.swing.JLabel();
         jTextField21 = new javax.swing.JTextField();
+        jLabel39 = new javax.swing.JLabel();
+        jTextField22 = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
         jLabel29 = new javax.swing.JLabel();
         jTextField16 = new javax.swing.JTextField();
@@ -425,7 +430,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jScrollPane14.setViewportView(jList14);
 
-        jLabel35.setText("Case:");
+        jLabel35.setText("Case Name:");
 
         jLabel36.setText("Feature:");
 
@@ -433,9 +438,23 @@ public class MainWindow extends javax.swing.JFrame {
 
         jLabel37.setText("Value:");
 
+        jTextField21.setEditable(false);
+        jTextField21.setBackground(new java.awt.Color(204, 204, 204));
+        jTextField21.setFocusable(false);
         jTextField21.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextField21ActionPerformed(evt);
+            }
+        });
+
+        jLabel39.setText("Output:");
+
+        jTextField22.setEditable(false);
+        jTextField22.setBackground(new java.awt.Color(204, 204, 204));
+        jTextField22.setFocusable(false);
+        jTextField22.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField22ActionPerformed(evt);
             }
         });
 
@@ -448,17 +467,22 @@ public class MainWindow extends javax.swing.JFrame {
                 .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(jPanel2Layout.createSequentialGroup()
                         .add(jLabel35)
-                        .add(0, 591, Short.MAX_VALUE))
+                        .add(0, 551, Short.MAX_VALUE))
                     .add(jScrollPane14))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel36)
-                    .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                        .add(jPanel2Layout.createSequentialGroup()
-                            .add(jLabel37)
-                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                            .add(jTextField21))
-                        .add(jScrollPane15, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 328, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                        .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel36)
+                        .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                            .add(jPanel2Layout.createSequentialGroup()
+                                .add(jLabel37)
+                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                                .add(jTextField21))
+                            .add(jScrollPane15, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 328, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .add(jLabel39)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jTextField22)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -471,11 +495,15 @@ public class MainWindow extends javax.swing.JFrame {
                 .add(11, 11, 11)
                 .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(jPanel2Layout.createSequentialGroup()
-                        .add(jScrollPane15, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 345, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(jScrollPane15, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 300, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                             .add(jLabel37)
-                            .add(jTextField21, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                            .add(jTextField21, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                        .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                            .add(jLabel39)
+                            .add(jTextField22, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                     .add(jScrollPane14, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 379, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .add(38, 38, 38))
         );
@@ -829,44 +857,60 @@ public class MainWindow extends javax.swing.JFrame {
     private void infoGainFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_infoGainFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_infoGainFieldActionPerformed
-
+    
     private void factsAttributeListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_factsAttributeListValueChanged
         factValue.removeAllItems();
-        String attribute = factsAttributeList.getSelectedValue().toString();
-        Feature currentFeature = featureDefinitions.find(attribute);
-        List<Property> properties = currentFeature.getProperties();
-        List<Fact> queryFacts = query.getFactList();
-        String valueFact = "";
-         if(!currentFeature.getType().equals("numeric")){
-            factValue.setEditable(false);
-            factValue.addItem("");
-        }
-        else{
-            factValue.setEditable(true);
-        }
-        for(Fact f: queryFacts){
-            if (f.getAttribute().equals(attribute)){
-                valueFact = f.getValue();
-            }
-        }
-        for(Property p: properties){
+        if(factsAttributeList.getSelectedValue() != null){
+            String attribute = factsAttributeList.getSelectedValue().toString();
+            Feature currentFeature = featureDefinitions.find(attribute);
+            List<Property> properties = currentFeature.getProperties();
+            List<Fact> queryFacts = query.getFactList();
+            String valueFact = "";
             if(!currentFeature.getType().equals("numeric")){
-                factValue.addItem(p.getValue());
+                factValue.setEditable(false);
+                factValue.addItem("");
             }
+            else{
+                factValue.setEditable(true);
+            }
+            for(Fact f: queryFacts){
+                if (f.getAttribute().equals(attribute)){
+                    valueFact = f.getValue();
+                }
+            }
+            for(Property p: properties){
+                if(!currentFeature.getType().equals("numeric")){
+                    factValue.addItem(p.getValue());
+                }
+            }
+            factValue.setSelectedItem(valueFact);
+            String infoGain = "" + currentFeature.getInformationGain();
+            infoGainField.setText(infoGain);
         }
-        factValue.setSelectedItem(valueFact);
-        String infoGain = "" + currentFeature.getInformationGain(); 
-        infoGainField.setText(infoGain);
     }//GEN-LAST:event_factsAttributeListValueChanged
-
+    
     private void updateCaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCaseActionPerformed
-        String newVal = factValue.getSelectedItem().toString();
-        Fact queryFact = query.find(factsAttributeList.getSelectedValue().toString());
-        query.remove(queryFact);
-        queryFact.setValue(newVal);
-        query.add(queryFact);
-        update();
+        if(factsAttributeList.getSelectedValue() != null){
+            String newVal = factValue.getSelectedItem().toString();
+            Fact queryFact;
+            if(!query.contains(factsAttributeList.getSelectedValue().toString())){
+                queryFact = new Fact();
+                queryFact.setAttribute(factsAttributeList.getSelectedValue().toString());
+                query.add(queryFact);
+            }
+            if(newVal.equals("")){
+                query.remove(query.find(factsAttributeList.getSelectedValue().toString()));
+            }
+            else{
+                query.find(factsAttributeList.getSelectedValue().toString()).setValue(newVal);
+            }
+            update();
+        }
     }//GEN-LAST:event_updateCaseActionPerformed
+
+    private void jTextField22ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField22ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField22ActionPerformed
     
     public void openKnowledgeBase(){
         int returnVal = fileChooser.showOpenDialog(this);
@@ -940,8 +984,12 @@ public class MainWindow extends javax.swing.JFrame {
     
     public void update(){
         if((knowledgeBase != null) && (queryCase != null) && (featureDefinitions != null)){
-            calculateSimilarity(knowledgeBase, queryCase);
             calculateInformationGain(knowledgeBase, featureDefinitions);
+            calculateSimilarity(knowledgeBase, query);
+            ActionLog.setForeground(Color.blue);
+            actionLog += "Updated successfully! ";
+            ActionLog.setText(actionLog);
+            actionLog = "";
         }
         else{
             ActionLog.setForeground(Color.red);
@@ -951,23 +999,22 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
-    public void calculateSimilarity(CaseBase knowledge, CaseBase facts){
+    public void calculateSimilarity(CaseBase knowledge, Case query){
         
     }
     
     public void calculateInformationGain(CaseBase knowledge, FeatureList features){
-        String outputAttribute = knowledge.getCases().get(0).getOutput().getAttribute();
-        Feature output = features.find(outputAttribute);
-        System.out.println(output);
-        featuresNoOutput = featuresNoOutput;
+        outputAttribute = knowledge.getCases().get(0).getOutput().getAttribute();
+        output = new Feature(features.find(outputAttribute));
+        featuresNoOutput = new FeatureList(features);
         featuresNoOutput.remove(outputAttribute);
-        List<Property> outputProperties = output.getProperties();
+        List<Property> outputProperties = output.getPropertiesCopy();
         Map<String,Integer> outputCount = new HashMap<String,Integer>();
         for(Property p: outputProperties){
             outputCount.put(p.getValue(),0);
             System.out.println(p);
         }
-        List<Case> cases = knowledge.getCases();
+        List<Case> cases = knowledge.getCasesCopy();
         for(Case c: cases){
             String property = c.getOutput().getValue();
             int count = outputCount.get(property).intValue() + 1;
@@ -996,7 +1043,7 @@ public class MainWindow extends javax.swing.JFrame {
         Map<String,Integer> propertyIndex = new HashMap<String,Integer>();
         for(int i = 0; i < featuresNoOutput.getSize(); i++){
             if(featuresNoOutput.find(featuresNoOutputResults[i]).getType().equals("symbolic")){
-                List<Property> properties = featuresNoOutput.find(featuresNoOutputResults[i]).getProperties();
+                List<Property> properties = featuresNoOutput.find(featuresNoOutputResults[i]).getPropertiesCopy();
                 for(int j = 0; j < properties.size(); j++){
                     if(featuresNoOutput.find(featuresNoOutputResults[i]).getType().equals("symbolic")){
                         propertyIndex.put(properties.get(j).getValue(),j);
@@ -1010,7 +1057,7 @@ public class MainWindow extends javax.swing.JFrame {
                 }
                 for(Case c: cases){
                     String outputValue = c.getOutput().getValue();
-                    List<Fact> factList = c.getFactList();
+                    List<Fact> factList = c.getFactListCopy();
                     for(Fact f: factList){
                         if(f.getAttribute().equals(featuresNoOutputResults[i])){
                             String value = f.getValue();
@@ -1037,21 +1084,22 @@ public class MainWindow extends javax.swing.JFrame {
             }
         }
         /*for(int j = 0; j < featuresNoOutputResults.length; j++){
-            System.out.println(featuresNoOutput.find(featuresNoOutputResults[j]).getInformationGain());
-        }*/
+         * System.out.println(featuresNoOutput.find(featuresNoOutputResults[j]).getInformationGain());
+         * }*/
         //System.out.println(outputIndex);
         //System.out.println(propertyIndex);
         
         featuresNoOutputResults2 = featuresNoOutput.getFeatureList().values().toArray(new Feature[0]);
         System.out.println("\n");
         Arrays.sort(featuresNoOutputResults2);
-        DefaultListModel listModel = new DefaultListModel();
+        listModel = new DefaultListModel();
         factsAttributeList.setModel(listModel);
         factsAttributeList.setCellRenderer(new MyListCell(query));
         for(int j = 0; j < featuresNoOutputResults2.length; j++){
             String attributeName = featuresNoOutputResults2[j].getName();
             listModel.addElement((featuresNoOutputResults2[j].getName()));
         }
+        //System.out.println(query);
     }
     
     public double log2(double num){
@@ -1130,6 +1178,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
+    private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel40;
     private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel42;
@@ -1172,6 +1221,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField19;
     private javax.swing.JTextField jTextField20;
     private javax.swing.JTextField jTextField21;
+    private javax.swing.JTextField jTextField22;
     private javax.swing.JButton updateCase;
     // End of variables declaration//GEN-END:variables
 }

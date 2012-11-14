@@ -13,6 +13,12 @@ public class Case {
         factList = new ArrayList<Fact>();
     }
     
+    public Case(Case c){
+        this.name = c.getName();
+        this.output = c.getOutputCopy();
+        this.similarity = c.getSimilarity();
+    }
+    
     public void setName(String name){
         this.name = name;
     }
@@ -27,6 +33,10 @@ public class Case {
     
     public Fact getOutput(){
         return output;
+    }
+    
+    public Fact getOutputCopy(){
+        return new Fact(output);
     }
     
     public void add(Fact fact){
@@ -49,6 +59,10 @@ public class Case {
     
     public List<Fact> getFactList(){
         return factList;
+    }
+    
+    public List<Fact> getFactListCopy(){
+        return new ArrayList<Fact>(factList);
     }
     
     public Boolean contains(String fact){

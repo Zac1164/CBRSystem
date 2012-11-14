@@ -9,12 +9,20 @@ public class CaseBase {
         cases = new ArrayList<Case>();
     }
     
+    public CaseBase(CaseBase cb){
+        this.cases = cb.getCasesCopy();
+    }
+    
     public void add(Case newcase) {
         cases.add(newcase);
     }
     
     public List<Case> getCases(){
         return cases;
+    }
+    
+    public List<Case> getCasesCopy(){
+        return new ArrayList<Case>(cases);
     }
     
     public int getSize(){
