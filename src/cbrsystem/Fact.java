@@ -24,7 +24,7 @@ public class Fact{
     
     @Override
     public String toString() {
-        String output = "\n4. Fact\n5. Attribute: " + attribute + "\n5. Value: " + value;
+        String output = "<" + attribute + "," + value + ">";
         return output;
     }
 }

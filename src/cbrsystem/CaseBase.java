@@ -17,12 +17,20 @@ public class CaseBase {
         return cases;
     }
     
-     @Override
-     public String toString() {
-         String output = "1. CaseBase";
-         for(Case c : cases){
-             output += c + "";
-         }
-         return output;
-     }
+    public int getSize(){
+        return cases.size();
+    }
+    
+    @Override
+    public String toString() {
+        String output = "Case Base: \n{\n";
+        for(int  i=0; i < cases.size(); i++){
+            output += cases.get(i);
+            if(i != (cases.size() - 1)){
+                output += ",\n";
+            }
+        }
+        output += "\n}";
+        return output;
+    }
 }

@@ -20,4 +20,9 @@ public class Property {
         this.value = value;
     }
     
+    public String toString() {
+        String output = " Prop Name: " + name + ", Prop Value: " + value + "\n";
+        return output;
+    }
+    
 }

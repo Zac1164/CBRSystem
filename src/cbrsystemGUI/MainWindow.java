@@ -1,13 +1,24 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package cbrsystemGUI;
 
+import cbrsystem.*;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.JFileChooser;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JLabel;
+import javax.swing.ListCellRenderer;
+import java.awt.Component;
 
 class MyCustomFilter extends javax.swing.filechooser.FileFilter {
     @Override
@@ -16,25 +27,59 @@ class MyCustomFilter extends javax.swing.filechooser.FileFilter {
     }
     @Override
     public String getDescription() {
-        // This description will be displayed in the dialog,
-        // hard-coded = ugly, should be done via I18N
         return "XML (*.xml)";
     }
-} 
+}
 
-/**
- *
- * @author zachdaniels
- */
+class MyListCell extends JLabel implements ListCellRenderer {
+
+    Case query;
+    Object val;
+    
+    public MyListCell(Case query) {
+        setOpaque(true);
+        this.query = query;
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        setText(value.toString());
+        val = value;
+        if (query.contains(value.toString())){
+            setForeground(Color.BLUE);
+        }
+        else{
+            setForeground(Color.RED);
+        }
+        if (isSelected) {
+            setBackground(Color.GRAY);
+        }
+        else{
+            setBackground(Color.WHITE);
+        }
+        return this;
+    }
+    
+    @Override
+    public String toString(){
+        return val.toString();
+    }
+}
+
 public class MainWindow extends javax.swing.JFrame {
-
-    /**
-     * Creates new form MainWindow
-     */
+    
+    private CaseBase knowledgeBase;
+    private CaseBase queryCase;
+    private Case query;
+    private FeatureList featureDefinitions;
+    private FeatureList featuresNoOutput;
+    private Feature[] featuresNoOutputResults2;
+    private String actionLog;
+    
     public MainWindow() {
         initComponents();
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -70,16 +115,17 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         factsLocation = new javax.swing.JTextField();
         fileChooser2 = new javax.swing.JFileChooser();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        factsPane = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
-        jScrollPane17 = new javax.swing.JScrollPane();
-        jList17 = new javax.swing.JList();
-        jLabel39 = new javax.swing.JLabel();
         jLabel40 = new javax.swing.JLabel();
         jScrollPane18 = new javax.swing.JScrollPane();
-        jList18 = new javax.swing.JList();
-        jTextField22 = new javax.swing.JTextField();
+        factsAttributeList = new javax.swing.JList();
         jLabel41 = new javax.swing.JLabel();
+        factValue = new javax.swing.JComboBox();
+        updateCase = new javax.swing.JButton();
+        jLabel42 = new javax.swing.JLabel();
+        infoGainField = new javax.swing.JTextField();
+        jSeparator1 = new javax.swing.JSeparator();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane14 = new javax.swing.JScrollPane();
         jList14 = new javax.swing.JList();
@@ -106,8 +152,17 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel38 = new javax.swing.JLabel();
         jScrollPane16 = new javax.swing.JScrollPane();
         jList16 = new javax.swing.JList();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel43 = new javax.swing.JLabel();
+        jSeparator2 = new javax.swing.JSeparator();
+        jLabel44 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        FactsFileText = new javax.swing.JTextArea();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        KBFileText = new javax.swing.JTextArea();
+        OpenKBButton = new javax.swing.JButton();
+        OpenFactsButton = new javax.swing.JButton();
+        ActionLog = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         OpenCBFile = new javax.swing.JMenuItem();
@@ -246,6 +301,7 @@ public class MainWindow extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("CBR System");
         setBackground(new java.awt.Color(255, 255, 255));
 
         fileChooser.setDialogTitle("This is my open dialog");
@@ -263,7 +319,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jLabel1.setText("Knowledge Base File");
 
-        jLabel2.setText("Query File:");
+        jLabel2.setText("Facts File:");
 
         factsLocation.setEditable(false);
         factsLocation.setBackground(new java.awt.Color(204, 204, 204));
@@ -278,25 +334,40 @@ public class MainWindow extends javax.swing.JFrame {
         fileChooser2.setDialogTitle("Selects facts");
         fileChooser2.setFileFilter(new MyCustomFilter());
 
-        jTabbedPane1.setBackground(new java.awt.Color(204, 204, 204));
+        factsPane.setBackground(new java.awt.Color(204, 204, 204));
 
         jPanel1.setBackground(new java.awt.Color(204, 204, 204));
 
-        jScrollPane17.setViewportView(jList17);
+        jLabel40.setText("Attribute:");
 
-        jLabel39.setText("Case:");
+        factsAttributeList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                factsAttributeListValueChanged(evt);
+            }
+        });
+        jScrollPane18.setViewportView(factsAttributeList);
 
-        jLabel40.setText("Feature:");
+        jLabel41.setText("Value:");
 
-        jScrollPane18.setViewportView(jList18);
+        factValue.setEditable(true);
 
-        jTextField22.addActionListener(new java.awt.event.ActionListener() {
+        updateCase.setText("Update");
+        updateCase.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField22ActionPerformed(evt);
+                updateCaseActionPerformed(evt);
             }
         });
 
-        jLabel41.setText("Value:");
+        jLabel42.setText("Information Gain:");
+
+        infoGainField.setEditable(false);
+        infoGainField.setBackground(new java.awt.Color(204, 204, 204));
+        infoGainField.setFocusable(false);
+        infoGainField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                infoGainFieldActionPerformed(evt);
+            }
+        });
 
         org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -305,41 +376,50 @@ public class MainWindow extends javax.swing.JFrame {
             .add(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabel40)
                     .add(jPanel1Layout.createSequentialGroup()
-                        .add(jLabel39)
-                        .add(0, 293, Short.MAX_VALUE))
-                    .add(jScrollPane17))
+                        .add(6, 6, 6)
+                        .add(jScrollPane18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 506, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jLabel40)
-                    .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                        .add(jPanel1Layout.createSequentialGroup()
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanel1Layout.createSequentialGroup()
+                        .add(jLabel42)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jSeparator1))
+                    .add(infoGainField)
+                    .add(jPanel1Layout.createSequentialGroup()
+                        .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
                             .add(jLabel41)
-                            .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                            .add(jTextField22))
-                        .add(jScrollPane18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 328, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                            .add(factValue, 0, 441, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, updateCase, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .add(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(18, Short.MAX_VALUE)
+                .addContainerGap()
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabel40)
+                    .add(jLabel41))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel40)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel39))
-                .add(11, 11, 11)
-                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jScrollPane18)
                     .add(jPanel1Layout.createSequentialGroup()
-                        .add(jScrollPane18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 345, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(factValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                            .add(jLabel41)
-                            .add(jTextField22, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                    .add(jScrollPane17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 379, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(38, 38, 38))
+                        .add(updateCase)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jSeparator1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(jLabel42))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                        .add(infoGainField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(0, 275, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Knowledge Base", jPanel1);
+        factsPane.addTab("Facts", jPanel1);
 
         jPanel2.setBackground(new java.awt.Color(204, 204, 204));
 
@@ -368,7 +448,7 @@ public class MainWindow extends javax.swing.JFrame {
                 .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(jPanel2Layout.createSequentialGroup()
                         .add(jLabel35)
-                        .add(0, 293, Short.MAX_VALUE))
+                        .add(0, 591, Short.MAX_VALUE))
                     .add(jScrollPane14))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
@@ -384,7 +464,7 @@ public class MainWindow extends javax.swing.JFrame {
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(18, Short.MAX_VALUE)
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jLabel35)
                     .add(jLabel36))
@@ -400,7 +480,7 @@ public class MainWindow extends javax.swing.JFrame {
                 .add(38, 38, 38))
         );
 
-        jTabbedPane1.addTab("Query", jPanel2);
+        factsPane.addTab("Knowledge Base", jPanel2);
 
         jPanel4.setBackground(new java.awt.Color(204, 204, 204));
 
@@ -448,7 +528,7 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jLabel38.setText("Feature:");
+        jLabel38.setText("Attribute:");
 
         jScrollPane16.setViewportView(jList16);
 
@@ -470,15 +550,15 @@ public class MainWindow extends javax.swing.JFrame {
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel4Layout.createSequentialGroup()
                         .add(jLabel32)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                        .add(jTextField18, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE))
+                        .add(jTextField18, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE))
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel4Layout.createSequentialGroup()
                         .add(jLabel33)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                        .add(jTextField19, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE))
+                        .add(jTextField19, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE))
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel4Layout.createSequentialGroup()
                         .add(jLabel34)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                        .add(jTextField20, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE))
+                        .add(jTextField20, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE))
                     .add(jPanel4Layout.createSequentialGroup()
                         .add(jLabel31)
                         .add(0, 0, Short.MAX_VALUE))
@@ -523,25 +603,81 @@ public class MainWindow extends javax.swing.JFrame {
                 .add(38, 38, 38))
         );
 
-        jTabbedPane1.addTab("Attributes", jPanel4);
+        factsPane.addTab("Attribute Definitions", jPanel4);
 
-        jButton1.setText("Choose");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jPanel5.setBackground(new java.awt.Color(204, 204, 204));
+
+        jLabel43.setText("Knowledge Base File:");
+
+        jLabel44.setText("Facts File:");
+
+        FactsFileText.setColumns(20);
+        FactsFileText.setRows(5);
+        jScrollPane1.setViewportView(FactsFileText);
+
+        KBFileText.setColumns(20);
+        KBFileText.setRows(5);
+        jScrollPane2.setViewportView(KBFileText);
+
+        org.jdesktop.layout.GroupLayout jPanel5Layout = new org.jdesktop.layout.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabel43)
+                    .add(jScrollPane2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 466, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jScrollPane1)
+                    .add(jSeparator2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
+                    .add(jPanel5Layout.createSequentialGroup()
+                        .add(jLabel44)
+                        .add(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabel43)
+                    .add(jLabel44))
+                .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanel5Layout.createSequentialGroup()
+                        .add(18, 18, 18)
+                        .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE))
+                    .add(jPanel5Layout.createSequentialGroup()
+                        .add(18, 18, 18)
+                        .add(jScrollPane2)))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jSeparator2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        factsPane.addTab("Input Files", jPanel5);
+
+        OpenKBButton.setText("Choose");
+        OpenKBButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                OpenKBButtonActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Choose");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        OpenFactsButton.setText("Choose");
+        OpenFactsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                OpenFactsButtonActionPerformed(evt);
             }
         });
+
+        ActionLog.setForeground(new java.awt.Color(0, 0, 255));
+        ActionLog.setText("Action Log");
 
         jMenu1.setText("File");
 
-        OpenCBFile.setText("Open Case Base File");
+        OpenCBFile.setText("Open Knowledge Base File");
         OpenCBFile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 OpenCBFileActionPerformed(evt);
@@ -576,7 +712,8 @@ public class MainWindow extends javax.swing.JFrame {
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jTabbedPane1)
+                    .add(ActionLog, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(factsPane)
                     .add(layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(layout.createSequentialGroup()
@@ -589,8 +726,8 @@ public class MainWindow extends javax.swing.JFrame {
                                 .add(factsLocation)))
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jButton1)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jButton2))))
+                            .add(OpenKBButton)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, OpenFactsButton))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -600,125 +737,327 @@ public class MainWindow extends javax.swing.JFrame {
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(caseBaseLocation, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(jLabel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(jButton1))
+                    .add(OpenKBButton))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
                     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                         .add(factsLocation)
-                        .add(jButton2))
+                        .add(OpenFactsButton))
                     .add(jLabel2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jTabbedPane1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                .add(ActionLog)
+                .add(13, 13, 13)
+                .add(factsPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 480, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .add(30, 30, 30))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
     private void OpenCBFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OpenCBFileActionPerformed
-        int returnVal = fileChooser.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            String filepath = file.getAbsolutePath();
-                caseBaseLocation.setText(filepath);
-        } else {
-            System.out.println("File access cancelled by user.");
-        }
+        openKnowledgeBase();
     }//GEN-LAST:event_OpenCBFileActionPerformed
-
+    
     private void ExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExitActionPerformed
         System.exit(0);
     }//GEN-LAST:event_ExitActionPerformed
-
+    
     private void caseBaseLocationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseBaseLocationActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_caseBaseLocationActionPerformed
-
+    
     private void factsLocationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_factsLocationActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_factsLocationActionPerformed
-
+    
     private void OpenFactsFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OpenFactsFileActionPerformed
-        int returnVal = fileChooser2.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser2.getSelectedFile();
-            String filepath = file.getAbsolutePath();
-                factsLocation.setText(filepath);
-        } else {
-            System.out.println("File access cancelled by user.");
-        }        // TODO add your handling code here:
+        openFacts();
     }//GEN-LAST:event_OpenFactsFileActionPerformed
+    
+    private void OpenKBButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OpenKBButtonActionPerformed
+        openKnowledgeBase();
+    }//GEN-LAST:event_OpenKBButtonActionPerformed
+    
+    private void jTextField11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField11ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField11ActionPerformed
+    
+    private void jTextField12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField12ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField12ActionPerformed
+    
+    private void jTextField13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField13ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField13ActionPerformed
+    
+    private void jTextField14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField14ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField14ActionPerformed
+    
+    private void jTextField15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField15ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField15ActionPerformed
+    
+    private void jTextField20ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField20ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField20ActionPerformed
+    
+    private void jTextField19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField19ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField19ActionPerformed
+    
+    private void jTextField18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField18ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField18ActionPerformed
+    
+    private void jTextField17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField17ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField17ActionPerformed
+    
+    private void jTextField16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField16ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField16ActionPerformed
+    
+    private void jTextField21ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField21ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField21ActionPerformed
+    
+    private void OpenFactsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OpenFactsButtonActionPerformed
+        openFacts();
+    }//GEN-LAST:event_OpenFactsButtonActionPerformed
+    
+    private void infoGainFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_infoGainFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_infoGainFieldActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void factsAttributeListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_factsAttributeListValueChanged
+        factValue.removeAllItems();
+        String attribute = factsAttributeList.getSelectedValue().toString();
+        Feature currentFeature = featureDefinitions.find(attribute);
+        List<Property> properties = currentFeature.getProperties();
+        List<Fact> queryFacts = query.getFactList();
+        String valueFact = "";
+         if(!currentFeature.getType().equals("numeric")){
+            factValue.setEditable(false);
+            factValue.addItem("");
+        }
+        else{
+            factValue.setEditable(true);
+        }
+        for(Fact f: queryFacts){
+            if (f.getAttribute().equals(attribute)){
+                valueFact = f.getValue();
+            }
+        }
+        for(Property p: properties){
+            if(!currentFeature.getType().equals("numeric")){
+                factValue.addItem(p.getValue());
+            }
+        }
+        factValue.setSelectedItem(valueFact);
+        String infoGain = "" + currentFeature.getInformationGain(); 
+        infoGainField.setText(infoGain);
+    }//GEN-LAST:event_factsAttributeListValueChanged
+
+    private void updateCaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCaseActionPerformed
+        String newVal = factValue.getSelectedItem().toString();
+        Fact queryFact = query.find(factsAttributeList.getSelectedValue().toString());
+        query.remove(queryFact);
+        queryFact.setValue(newVal);
+        query.add(queryFact);
+        update();
+    }//GEN-LAST:event_updateCaseActionPerformed
+    
+    public void openKnowledgeBase(){
         int returnVal = fileChooser.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             String filepath = file.getAbsolutePath();
-                caseBaseLocation.setText(filepath);
+            caseBaseLocation.setText(filepath);
+            try{
+                ParseXML parser = new ParseXML(filepath);
+                knowledgeBase = parser.getCaseBase();
+                featureDefinitions = parser.getFeatureDefinitions();
+                if(knowledgeBase != null){
+                    ActionLog.setForeground(Color.blue);
+                    actionLog = "Knowledge base file parsed successfully! ";
+                    KBFileText.read(new FileReader(file), file);
+                    if(featureDefinitions == null){
+                        ActionLog.setForeground(Color.red);
+                        actionLog = "No feature definitions found in knowledge base. ";
+                    }
+                    ActionLog.setText(actionLog);
+                }
+                else{
+                    ActionLog.setForeground(Color.red);
+                    actionLog = "Knowledge base failed to parse successfully! ";
+                    ActionLog.setText(actionLog);
+                }
+                update();
+            }catch(ParserConfigurationException e){
+            }catch(SAXException e){
+            }catch(IOException e){
+            }
         } else {
             System.out.println("File access cancelled by user.");
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jTextField11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField11ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField11ActionPerformed
-
-    private void jTextField12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField12ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField12ActionPerformed
-
-    private void jTextField13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField13ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField13ActionPerformed
-
-    private void jTextField14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField14ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField14ActionPerformed
-
-    private void jTextField15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField15ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField15ActionPerformed
-
-    private void jTextField20ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField20ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField20ActionPerformed
-
-    private void jTextField19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField19ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField19ActionPerformed
-
-    private void jTextField18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField18ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField18ActionPerformed
-
-    private void jTextField17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField17ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField17ActionPerformed
-
-    private void jTextField16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField16ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField16ActionPerformed
-
-    private void jTextField21ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField21ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField21ActionPerformed
-
-    private void jTextField22ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField22ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField22ActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    }
+    
+    public void openFacts(){
         int returnVal = fileChooser2.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser2.getSelectedFile();
             String filepath = file.getAbsolutePath();
-                factsLocation.setText(filepath);
+            factsLocation.setText(filepath);
+            try{
+                ParseXML parser = new ParseXML(filepath);
+                queryCase = parser.getCaseBase();
+                if(queryCase != null){
+                    query = queryCase.getCases().get(0);
+                    FactsFileText.read(new FileReader(file), file);
+                    ActionLog.setForeground(Color.blue);
+                    actionLog = "Facts file parsed successfully! ";
+                    if(queryCase.getSize() > 1){
+                        ActionLog.setForeground(Color.yellow);
+                        actionLog += "More than one query case found. Selecting first case as query case. ";
+                    }
+                    ActionLog.setText(actionLog);
+                }
+                else{
+                    ActionLog.setForeground(Color.red);
+                    actionLog = "Facts failed to parse successfully! ";
+                    ActionLog.setText(actionLog);
+                }
+                update();
+            }catch(ParserConfigurationException e){
+            }catch(SAXException e){
+            }catch(IOException e){
+            }
         } else {
             System.out.println("File access cancelled by user.");
-        }  
-    }//GEN-LAST:event_jButton2ActionPerformed
-
+        }
+    }
+    
+    public void update(){
+        if((knowledgeBase != null) && (queryCase != null) && (featureDefinitions != null)){
+            calculateSimilarity(knowledgeBase, queryCase);
+            calculateInformationGain(knowledgeBase, featureDefinitions);
+        }
+        else{
+            ActionLog.setForeground(Color.red);
+            actionLog += "Failed to execute update due to invalid files. ";
+            ActionLog.setText(actionLog);
+            actionLog = "";
+        }
+    }
+    
+    public void calculateSimilarity(CaseBase knowledge, CaseBase facts){
+        
+    }
+    
+    public void calculateInformationGain(CaseBase knowledge, FeatureList features){
+        String outputAttribute = knowledge.getCases().get(0).getOutput().getAttribute();
+        Feature output = features.find(outputAttribute);
+        System.out.println(output);
+        featuresNoOutput = featuresNoOutput;
+        featuresNoOutput.remove(outputAttribute);
+        List<Property> outputProperties = output.getProperties();
+        Map<String,Integer> outputCount = new HashMap<String,Integer>();
+        for(Property p: outputProperties){
+            outputCount.put(p.getValue(),0);
+            System.out.println(p);
+        }
+        List<Case> cases = knowledge.getCases();
+        for(Case c: cases){
+            String property = c.getOutput().getValue();
+            int count = outputCount.get(property).intValue() + 1;
+            outputCount.remove(property);
+            outputCount.put(property, count);
+        }
+        Integer[] outputResults;
+        outputResults = outputCount.values().toArray(new Integer[0]);
+        double total = 0;
+        for(int i = 0; i < outputResults.length; i++){
+            total += outputResults[i].intValue();
+        }
+        double information = 0;
+        for(int i = 0; i < outputResults.length; i++){
+            double num = outputResults[i].intValue();
+            information -= (num / total) * log2(num / total);
+        }
+        String[] outputResults2;
+        outputResults2 = outputCount.keySet().toArray(new String[0]);
+        Map<String,Integer> outputIndex = new HashMap<String,Integer>();
+        for(int i = 0; i < outputResults2.length; i++){
+            outputIndex.put(outputResults2[i],i);
+        }
+        String[] featuresNoOutputResults;
+        featuresNoOutputResults = featuresNoOutput.getFeatureList().keySet().toArray(new String[0]);
+        Map<String,Integer> propertyIndex = new HashMap<String,Integer>();
+        for(int i = 0; i < featuresNoOutput.getSize(); i++){
+            if(featuresNoOutput.find(featuresNoOutputResults[i]).getType().equals("symbolic")){
+                List<Property> properties = featuresNoOutput.find(featuresNoOutputResults[i]).getProperties();
+                for(int j = 0; j < properties.size(); j++){
+                    if(featuresNoOutput.find(featuresNoOutputResults[i]).getType().equals("symbolic")){
+                        propertyIndex.put(properties.get(j).getValue(),j);
+                    }
+                }
+                double[][] propertyCounts= new double[propertyIndex.size()][outputIndex.size()];
+                for(int j = 0; j < propertyIndex.size(); j++){
+                    for(int k = 0; k < outputIndex.size(); k++){
+                        propertyCounts[j][k] = 0;
+                    }
+                }
+                for(Case c: cases){
+                    String outputValue = c.getOutput().getValue();
+                    List<Fact> factList = c.getFactList();
+                    for(Fact f: factList){
+                        if(f.getAttribute().equals(featuresNoOutputResults[i])){
+                            String value = f.getValue();
+                            propertyCounts[propertyIndex.get(value).intValue()][outputIndex.get(outputValue).intValue()]++;
+                        }
+                    }
+                }
+                double remainder = 0;
+                for(int j = 0; j < propertyIndex.size(); j++){
+                    double propTotal = 0;
+                    for(int k = 0; k < outputIndex.size(); k++){
+                        propTotal += propertyCounts[j][k];
+                    }
+                    double appliesTo = propTotal/total;
+                    for(int k = 0; k < outputIndex.size(); k++){
+                        if(propertyCounts[j][k] != 0){
+                            remainder += appliesTo * -1 * (propertyCounts[j][k]/propTotal) * log2(propertyCounts[j][k]/propTotal);
+                        }
+                    }
+                }
+                double informationGain = information - remainder;
+                featuresNoOutput.find(featuresNoOutputResults[i]).setInformationGain(informationGain);
+                propertyIndex.clear();
+            }
+        }
+        /*for(int j = 0; j < featuresNoOutputResults.length; j++){
+            System.out.println(featuresNoOutput.find(featuresNoOutputResults[j]).getInformationGain());
+        }*/
+        //System.out.println(outputIndex);
+        //System.out.println(propertyIndex);
+        
+        featuresNoOutputResults2 = featuresNoOutput.getFeatureList().values().toArray(new Feature[0]);
+        System.out.println("\n");
+        Arrays.sort(featuresNoOutputResults2);
+        DefaultListModel listModel = new DefaultListModel();
+        factsAttributeList.setModel(listModel);
+        factsAttributeList.setCellRenderer(new MyListCell(query));
+        for(int j = 0; j < featuresNoOutputResults2.length; j++){
+            String attributeName = featuresNoOutputResults2[j].getName();
+            listModel.addElement((featuresNoOutputResults2[j].getName()));
+        }
+    }
+    
+    public double log2(double num){
+        return Math.log(num) / Math.log(2);
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -726,7 +1065,7 @@ public class MainWindow extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -745,7 +1084,7 @@ public class MainWindow extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
+        
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
@@ -755,15 +1094,22 @@ public class MainWindow extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel ActionLog;
     private javax.swing.JMenuItem Exit;
+    private javax.swing.JTextArea FactsFileText;
+    private javax.swing.JTextArea KBFileText;
     private javax.swing.JMenuItem OpenCBFile;
+    private javax.swing.JButton OpenFactsButton;
     private javax.swing.JMenuItem OpenFactsFile;
+    private javax.swing.JButton OpenKBButton;
     private javax.swing.JTextField caseBaseLocation;
+    private javax.swing.JComboBox factValue;
+    private javax.swing.JList factsAttributeList;
     private javax.swing.JTextField factsLocation;
+    private javax.swing.JTabbedPane factsPane;
     private javax.swing.JFileChooser fileChooser;
     private javax.swing.JFileChooser fileChooser2;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JTextField infoGainField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
@@ -784,16 +1130,16 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
-    private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel40;
     private javax.swing.JLabel jLabel41;
+    private javax.swing.JLabel jLabel42;
+    private javax.swing.JLabel jLabel43;
+    private javax.swing.JLabel jLabel44;
     private javax.swing.JList jList10;
     private javax.swing.JList jList13;
     private javax.swing.JList jList14;
     private javax.swing.JList jList15;
     private javax.swing.JList jList16;
-    private javax.swing.JList jList17;
-    private javax.swing.JList jList18;
     private javax.swing.JList jList8;
     private javax.swing.JList jList9;
     private javax.swing.JMenu jMenu1;
@@ -802,16 +1148,19 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane10;
     private javax.swing.JScrollPane jScrollPane13;
     private javax.swing.JScrollPane jScrollPane14;
     private javax.swing.JScrollPane jScrollPane15;
     private javax.swing.JScrollPane jScrollPane16;
-    private javax.swing.JScrollPane jScrollPane17;
     private javax.swing.JScrollPane jScrollPane18;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane8;
     private javax.swing.JScrollPane jScrollPane9;
-    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
     private javax.swing.JTextField jTextField11;
     private javax.swing.JTextField jTextField12;
     private javax.swing.JTextField jTextField13;
@@ -823,6 +1172,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField19;
     private javax.swing.JTextField jTextField20;
     private javax.swing.JTextField jTextField21;
-    private javax.swing.JTextField jTextField22;
+    private javax.swing.JButton updateCase;
     // End of variables declaration//GEN-END:variables
 }

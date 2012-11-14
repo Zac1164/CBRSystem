@@ -7,6 +7,7 @@ public class Case {
     private String name;
     private List<Fact> factList;
     private Fact output;
+    private double similarity;
     
     public Case(){
         factList = new ArrayList<Fact>();
@@ -32,12 +33,53 @@ public class Case {
         factList.add(fact);
     }
     
+    public void remove(Fact fact){
+        if(factList.contains(fact)){
+            factList.remove(fact);
+        }
+    }
+    
+    public void setSimilarity(double similarity){
+        this.similarity = similarity;
+    }
+    
+    public double getSimilarity(){
+        return similarity;
+    }
+    
+    public List<Fact> getFactList(){
+        return factList;
+    }
+    
+    public Boolean contains(String fact){
+        for(Fact f: factList){
+            if(f.getAttribute().equals(fact)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public Fact find(String fact){
+        for(Fact f: factList){
+            if(f.getAttribute().equals(fact)){
+                return f;
+            }
+        }
+        return new Fact();
+    }
+    
     @Override
     public String toString() {
-        String output2 = "\n2. Case\n3. Case Name: " + name + "\n3. Output: " + output;
-        for(Fact f : factList){
-            output2 += f;
+        String output2 = " [";
+        for(int  i=0; i < factList.size(); i++){
+            output2 += factList.get(i);
+            if(i != (factList.size() - 1)){
+                output2 += ",";
+            }
         }
+        output2 += "]";
         return output2;
     }
+    
 }

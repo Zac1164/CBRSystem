@@ -18,20 +18,15 @@ public class ParseXML {
     private FeatureList featureList;
     private Feature currentFeature;
     private Property currentProperty;
-    static private CaseBase caseBase;
+    private CaseBase caseBase;
     private Case currentCase;
     private Fact currentFact;
     private Fact currentOutput;
     
-    public static void main(String[] args) throws ParserConfigurationException,SAXException,IOException{
-        ParseXML a = new ParseXML();
-        System.out.println(caseBase);
-    }
-    
-    public ParseXML() throws ParserConfigurationException,SAXException,IOException{
+    public ParseXML(String filelocation) throws ParserConfigurationException,SAXException,IOException{
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder loader = factory.newDocumentBuilder();
-        Document document = loader.parse("/Users/zachdaniels/Desktop/Casebase.xml");
+        Document document = loader.parse(filelocation);
         
         DocumentTraversal traversal = (DocumentTraversal) document;
         
@@ -41,6 +36,8 @@ public class ParseXML {
         //Find out possible features first
         traverseFeatures(walker,"");
         traverseCases(walker,"");
+        System.out.println(caseBase);
+        System.out.println(featureList);
     }
     
     private void traverseFeatures(TreeWalker walker, String parent) {
@@ -60,8 +57,8 @@ public class ParseXML {
             currentFeature = new Feature();
             for (Node n = walker.firstChild(); n != null; n = walker.nextSibling()) {
                 traverseFeatures(walker,"Feature");
-                featureList.add(currentFeature);
             }
+            featureList.add(currentFeature);
             walker.setCurrentNode(parend);
         }
         //Assign name to feature
@@ -98,8 +95,8 @@ public class ParseXML {
             currentProperty = new Property();
             for (Node n = walker.firstChild(); n != null; n = walker.nextSibling()) {
                 traverseFeatures(walker,"Property");
-                currentFeature.addProperty(currentProperty);
             }
+            currentFeature.addProperty(currentProperty);
             walker.setCurrentNode(parend);
         }
         //Assign name to property
@@ -159,7 +156,7 @@ public class ParseXML {
                 traverseCases(walker,"Cases");
             }
         }
-        else if(((Element) parend).getTagName().equals("case") && parent.equals("Cases"))
+        else if(((Element) parend).getTagName().equals("case") && (parent.equals("Cases") || parent.equals("CaseBase")))
         {
             currentCase = new Case();
             for (Node n = walker.firstChild(); n != null; n = walker.nextSibling()) {
@@ -242,5 +239,13 @@ public class ParseXML {
             walker.setCurrentNode(parend);
         }
         walker.setCurrentNode(parend);
+    }
+    
+    public FeatureList getFeatureDefinitions(){
+        return featureList;
+    }
+    
+    public CaseBase getCaseBase(){
+        return caseBase;
     }
 }
