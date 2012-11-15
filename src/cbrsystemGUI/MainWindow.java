@@ -1285,16 +1285,16 @@ public class MainWindow extends javax.swing.JFrame {
     public void calculateSimilarity(CaseBase knowledge, Case query){
         List<Case> caseList = knowledge.getCases();
         for(Case currentCase: caseList){
-            List<Fact> queryFactList = query.getFactListCopy();
+            List<Fact> factList = currentCase.getFactListCopy();
             Map<String,Feature> featureDefs = featureDefinitions.getFeatureListCopy();
             double similarity = 0;
-            for(Fact queryFact: queryFactList){
-                String attribute = queryFact.getAttribute();
-                String queryValue = queryFact.getValue();
+            for(Fact fact: factList){
+                String attribute = fact.getAttribute();
+                String baseValue = fact.getValue();
                 String type = featureDefs.get(attribute).getType();
                 double weight = featureDefs.get(attribute).getWeight();
-                if(currentCase.contains(attribute)){
-                    String baseValue = currentCase.find(attribute).getValue();
+                if(query.contains(attribute)){
+                    String queryValue = query.find(attribute).getValue();
                     //numeric attribute
                     if(type.equals("numeric")){
                         List<Property> propertyList = featureDefs.get(attribute).getPropertiesCopy();
@@ -1322,7 +1322,7 @@ public class MainWindow extends javax.swing.JFrame {
                 }
                 //Missing values are assigned to most common value for symbolic and mean for numeric if in query case and not in kb case
                 else{
-                   String baseValue = missingValues.get(attribute);
+                   String queryValue = missingValues.get(attribute);
                    if(type.equals("numeric")){
                         List<Property> propertyList = featureDefs.get(attribute).getPropertiesCopy();
                         double maxValue = 0;
@@ -1595,6 +1595,7 @@ public class MainWindow extends javax.swing.JFrame {
             else{
                 missingValues.put(feature.getName(),keys[element]);
             }
+            System.out.println(missingValues);
         }
     }
     
