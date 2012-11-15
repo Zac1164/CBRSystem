@@ -1092,16 +1092,18 @@ public class MainWindow extends javax.swing.JFrame {
     private void casesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_casesListValueChanged
         if(casesList.getSelectedValue() != null){
             Case caseName = knowledgeBase.find(casesList.getSelectedValue().toString());
-            outputLabel.setText(caseName.getOutputCopy().getAttribute()+":");
+            outputLabel.setText(caseName.getOutputCopy().getAttribute() + ":");
             outputField.setText(caseName.getOutputCopy().getValue());
             similarityField.setText(Double.toString(caseName.getSimilarity()));
-            List<Fact> facts = caseName.getFactListCopy();
+            Map<String,Feature> featureList = featureDefinitions.getFeatureListCopy();
+            featureList.remove(outputAttribute);
+            String[] features = featureList.keySet().toArray(new String[0]);
             listModel3 = new DefaultListModel();
             featuresList.setModel(listModel3);
             featuresList.setCellRenderer(new MyListCell3(query,caseName));
             listModel3.clear();
-            for(Fact f: facts){
-                listModel3.addElement(f.getAttribute());
+            for(int i = 0; i < features.length; i++){
+                listModel3.addElement(features[i]);
             }
         }
     }//GEN-LAST:event_casesListValueChanged
@@ -1284,71 +1286,60 @@ public class MainWindow extends javax.swing.JFrame {
     //Calculate similarity metric
     public void calculateSimilarity(CaseBase knowledge, Case query){
         List<Case> caseList = knowledge.getCases();
+        Map<String,Feature> featureList = featureDefinitions.getFeatureListCopy();
+        featureList.remove(outputAttribute);
+        String[] features = featureList.keySet().toArray(new String[0]);
         for(Case currentCase: caseList){
-            List<Fact> factList = currentCase.getFactListCopy();
-            Map<String,Feature> featureDefs = featureDefinitions.getFeatureListCopy();
             double similarity = 0;
-            for(Fact fact: factList){
-                String attribute = fact.getAttribute();
-                String baseValue = fact.getValue();
+            for(int i = 0; i < features.length; i++){
+                List<Fact> factList = currentCase.getFactListCopy();
+                Map<String,Feature> featureDefs = featureDefinitions.getFeatureListCopy();
+                
+                String attribute = features[i];
                 String type = featureDefs.get(attribute).getType();
                 double weight = featureDefs.get(attribute).getWeight();
-                if(query.contains(attribute)){
-                    String queryValue = query.find(attribute).getValue();
-                    //numeric attribute
-                    if(type.equals("numeric")){
-                        List<Property> propertyList = featureDefs.get(attribute).getPropertiesCopy();
-                        double maxValue = 0;
-                        double minValue = 0;
-                        double bValue = Double.parseDouble(baseValue);
-                        double qValue = Double.parseDouble(queryValue);
-                        for(Property prop: propertyList){
-                            if(prop.getName().equals("max")){
-                                maxValue = Double.parseDouble(prop.getValue());
-                            }
-                            else if(prop.getName().equals("min")){
-                                minValue = Double.parseDouble(prop.getValue());
-                            }
-                        }
-                        // 1 - [(A - B) / (max - min)] used as metric, if A = B --> 1, if A is max & B is min --> 0
-                        similarity += weight * (1 - (Math.abs(bValue - qValue) / (maxValue - minValue)));
-                    }
-                    //symbolic attribute
-                    else{
-                        if(queryValue.equals(baseValue)){
-                            similarity += weight * 1; //Add one for same value, zero for different value
-                        }
-                    }
+                String baseValue;
+                String queryValue;
+                
+                if(currentCase.contains(features[i])){
+                    baseValue = currentCase.find(features[i]).getValue();
                 }
-                //Missing values are assigned to most common value for symbolic and mean for numeric if in query case and not in kb case
                 else{
-                   String queryValue = missingValues.get(attribute);
-                   if(type.equals("numeric")){
-                        List<Property> propertyList = featureDefs.get(attribute).getPropertiesCopy();
-                        double maxValue = 0;
-                        double minValue = 0;
-                        double bValue = Double.parseDouble(baseValue);
-                        double qValue = Double.parseDouble(queryValue);
-                        for(Property prop: propertyList){
-                            if(prop.getName().equals("max")){
-                                maxValue = Double.parseDouble(prop.getValue());
-                            }
-                            else if(prop.getName().equals("min")){
-                                minValue = Double.parseDouble(prop.getValue());
-                            }
+                    baseValue = missingValues.get(attribute);
+                }
+                
+                if(query.contains(features[i])){
+                    queryValue = query.find(features[i]).getValue();
+                }
+                else{
+                    queryValue = missingValues.get(attribute);
+                }
+                
+                //numeric attribute
+                if(type.equals("numeric")){
+                    List<Property> propertyList = featureDefs.get(attribute).getPropertiesCopy();
+                    double maxValue = 0;
+                    double minValue = 0;
+                    double bValue = Double.parseDouble(baseValue);
+                    double qValue = Double.parseDouble(queryValue);
+                    for(Property prop: propertyList){
+                        if(prop.getName().equals("max")){
+                            maxValue = Double.parseDouble(prop.getValue());
                         }
-                        // 1 - [(A - B) / (max - min)] used as metric, if A = B --> 1, if A is max & B is min --> 0
-                        similarity += weight * (1 - (Math.abs(bValue - qValue) / (maxValue - minValue)));
+                        else if(prop.getName().equals("min")){
+                            minValue = Double.parseDouble(prop.getValue());
+                        }
                     }
-                    //symbolic attribute
-                    else{
-                        if(queryValue.equals(baseValue)){
-                            similarity += weight * 1; //Add one for same value, zero for different value
-                        }
-                    } 
+                    // 1 - [(A - B) / (max - min)] used as metric, if A = B --> 1, if A is max & B is min --> 0
+                    similarity += weight * (1 - (Math.abs(bValue - qValue) / (maxValue - minValue)));
+                }
+                //symbolic attribute
+                else{
+                    if(queryValue.equals(baseValue)){
+                        similarity += weight; //Add one for same value, zero for different value
+                    }
                 }
             }
-            //Missing values are assigned a similarity of zero if they appear in kb case and not query case
             currentCase.setSimilarity(similarity);
         }
         Case[] caseResults = caseList.toArray(new Case[0]);
