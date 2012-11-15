@@ -3,7 +3,7 @@ package cbrsystem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Case {
+public class Case implements Comparable{
     private String name;
     private List<Fact> factList;
     private Fact output;
@@ -33,6 +33,10 @@ public class Case {
     
     public Fact getOutput(){
         return output;
+    }
+    
+    public double getSize(){
+        return factList.size();
     }
     
     public Fact getOutputCopy(){
@@ -81,6 +85,23 @@ public class Case {
             }
         }
         return new Fact();
+    }
+    
+    @Override
+    public int compareTo(Object c) {
+        Case tmp = (Case)c;
+		double aScore = this.getSimilarity();
+		double bScore = tmp.getSimilarity();
+		if(aScore > bScore){
+			return -1;
+		} 
+		else if(aScore < bScore)
+		{
+			return 1;
+		}
+		else{
+			return 0; 
+		}
     }
     
     @Override

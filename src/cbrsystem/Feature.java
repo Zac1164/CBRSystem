@@ -66,6 +66,7 @@ public class Feature implements Comparable{
         return informationGain;
     }
     
+    @Override
     public int compareTo(Object feature) {
         Feature tmp = (Feature)feature;
 		double aScore = this.getInformationGain();

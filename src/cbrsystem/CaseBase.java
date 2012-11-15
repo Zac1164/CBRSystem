@@ -29,6 +29,15 @@ public class CaseBase {
         return cases.size();
     }
     
+    public Case find(String inputCase){
+        for(Case c: cases){
+            if(c.getName().equals(inputCase)){
+                return c;
+            }
+        }
+        return new Case();
+    }
+    
     @Override
     public String toString() {
         String output = "Case Base: \n{\n";
