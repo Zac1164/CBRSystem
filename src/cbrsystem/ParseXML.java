@@ -1,3 +1,5 @@
+/*Parse XML File*/
+
 package cbrsystem;
 
 import java.io.IOException;
@@ -14,7 +16,7 @@ import org.xml.sax.SAXException;
 
 public class ParseXML {
     
-    //Keep track of all features
+    //Keep track of useful information
     private FeatureList featureList;
     private Feature currentFeature;
     private Property currentProperty;
@@ -33,9 +35,13 @@ public class ParseXML {
         TreeWalker walker = traversal.createTreeWalker(document.getDocumentElement(),
                 NodeFilter.SHOW_ELEMENT, null, true);
         
-        //Find out possible features first
+        //Build list of feature definitions first if one exists
         traverseFeatures(walker,"");
+        
+        //Build case base
         traverseCases(walker,"");
+        
+        //Verify output
         System.out.println(caseBase);
         System.out.println(featureList);
     }
@@ -129,7 +135,6 @@ public class ParseXML {
                 traverseFeatures(walker,"PropertyValue");
             }
         }
-        //Skip tag
         else{
             for (Node n = walker.firstChild(); n != null; n = walker.nextSibling()) {
                 traverseFeatures(walker,"");
@@ -156,6 +161,7 @@ public class ParseXML {
                 traverseCases(walker,"Cases");
             }
         }
+        //New case
         else if(((Element) parend).getTagName().equals("case") && (parent.equals("Cases") || parent.equals("CaseBase")))
         {
             currentCase = new Case();
@@ -164,6 +170,7 @@ public class ParseXML {
             }
             caseBase.add(currentCase);
         }
+        //Assign name to case
         else if(((Element) parend).getTagName().equals("name") && parent.equals("Case"))
         {
             String name = parend.getFirstChild().getNodeValue();
@@ -178,6 +185,7 @@ public class ParseXML {
                 traverseCases(walker,"Facts");
             }
         }
+        //New fact, add to case
         else if(((Element) parend).getTagName().equals("feature") && parent.equals("Facts"))
         {
             currentFact = new Fact();
@@ -186,6 +194,7 @@ public class ParseXML {
             }
             currentCase.add(currentFact);
         }
+        //Set attribute name for fact
         else if(((Element) parend).getTagName().equals("name") && parent.equals("Fact"))
         {
             String attribute = parend.getFirstChild().getNodeValue();
@@ -194,6 +203,7 @@ public class ParseXML {
                 traverseCases(walker,"Attribute");
             }
         }
+        //Set value for fact
         else if(((Element) parend).getTagName().equals("value") && parent.equals("Fact"))
         {
             String value = parend.getFirstChild().getNodeValue();
@@ -208,6 +218,7 @@ public class ParseXML {
                 traverseCases(walker,"Output");
             }
         }
+        //New output fact
         else if(((Element) parend).getTagName().equals("feature") && parent.equals("Output"))
         {
             currentOutput = new Fact();
@@ -216,6 +227,7 @@ public class ParseXML {
             }
             currentCase.setOutput(currentOutput);
         }
+        //Assign output attribute name
         else if(((Element) parend).getTagName().equals("name") && parent.equals("OutputFact"))
         {
             String attribute = parend.getFirstChild().getNodeValue();
@@ -224,6 +236,7 @@ public class ParseXML {
                 traverseCases(walker,"OutputAttribute");
             }
         }
+        //Assign output value
         else if(((Element) parend).getTagName().equals("value") && parent.equals("OutputFact"))
         {
             String value = parend.getFirstChild().getNodeValue();

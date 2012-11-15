@@ -1,3 +1,5 @@
+/*Data structure for a fact (attribute-value pair)*/
+
 package cbrsystem;
 
 import java.util.ArrayList;

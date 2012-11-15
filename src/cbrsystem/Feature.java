@@ -1,13 +1,15 @@
+/*Data structure for a feature (a definition of a fact)*/
+
 package cbrsystem;
 import java.util.List;
 import java.util.ArrayList;
 
 
 public class Feature implements Comparable{
-    private String name;
-    private String type;
-    private List<Property> properties;
-    private double informationGain;
+    private String name; //attribute name
+    private String type; //is attribute symbolic or numeric?
+    private List<Property> properties; //collection of properties that define attribute
+    private double informationGain; //used for sorting attributes
     private double weight;
     
     public Feature(){
@@ -66,13 +68,9 @@ public class Feature implements Comparable{
         return informationGain;
     }
     
-    public Property find(String prop){
-        for(Property p: properties){
-            if(p.getName().equals(prop)){
-                return p;
-            }
-        }
-        return new Property();
+    //Get number of properties
+    public int getSize(){
+        return properties.size();
     }
     
     @Override

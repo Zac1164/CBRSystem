@@ -1,3 +1,5 @@
+/*Data structure for attribute property*/
+
 package cbrsystem;
 
 public class Property {

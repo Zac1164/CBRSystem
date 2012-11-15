@@ -1,13 +1,14 @@
+/*Purpose: Data structure for a case*/
 
 package cbrsystem;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Case implements Comparable{
-    private String name;
-    private List<Fact> factList;
-    private Fact output;
-    private double similarity;
+    private String name; //name of case
+    private List<Fact> factList; //facts embodied in case
+    private Fact output; //output fact
+    private double similarity; //similarity measure
     
     public Case(){
         factList = new ArrayList<Fact>();
@@ -35,12 +36,12 @@ public class Case implements Comparable{
         return output;
     }
     
-    public double getSize(){
-        return factList.size();
-    }
-    
     public Fact getOutputCopy(){
         return new Fact(output);
+    }
+    
+    public double getSize(){
+        return factList.size();
     }
     
     public void add(Fact fact){
@@ -69,6 +70,7 @@ public class Case implements Comparable{
         return new ArrayList<Fact>(factList);
     }
     
+    //Check whether case contains fact given attribute name
     public Boolean contains(String fact){
         for(Fact f: factList){
             if(f.getAttribute().equals(fact)){
@@ -78,6 +80,7 @@ public class Case implements Comparable{
         return false;
     }
     
+    //Get fact from case using attribute name
     public Fact find(String fact){
         for(Fact f: factList){
             if(f.getAttribute().equals(fact)){

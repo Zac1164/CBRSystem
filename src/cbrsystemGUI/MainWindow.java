@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.DefaultListModel;
@@ -18,6 +19,8 @@ import javax.swing.ListCellRenderer;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
+
+//Filter file diaglog for XML files
 class MyCustomFilter extends javax.swing.filechooser.FileFilter {
     @Override
     public boolean accept(File file) {
@@ -29,6 +32,7 @@ class MyCustomFilter extends javax.swing.filechooser.FileFilter {
     }
 }
 
+//Format list for displaying query attributes
 class MyListCell extends JLabel implements ListCellRenderer {
     
     Case query;
@@ -64,6 +68,7 @@ class MyListCell extends JLabel implements ListCellRenderer {
     }
 }
 
+//Format list for displaying knowledge base cases
 class MyListCell2 extends JLabel implements ListCellRenderer {
     
     Object val;
@@ -97,6 +102,7 @@ class MyListCell2 extends JLabel implements ListCellRenderer {
     }
 }
 
+//Format list for comparing attributes between query case and knowledge base case
 class MyListCell3 extends JLabel implements ListCellRenderer {
     
     Object val;
@@ -140,6 +146,7 @@ class MyListCell3 extends JLabel implements ListCellRenderer {
     }
 }
 
+//General format for other lists
 class MyListCell4 extends JLabel implements ListCellRenderer {
     
     Object val;
@@ -170,20 +177,21 @@ class MyListCell4 extends JLabel implements ListCellRenderer {
 public class MainWindow extends javax.swing.JFrame {
     
     private CaseBase knowledgeBase;
-    private CaseBase queryCase;
-    private Case query;
+    private CaseBase queryCase; //case base containing query
+    private Case query; //actual case to be queried
     private FeatureList featureDefinitions;
-    private String actionLog;
-    private String outputAttribute;
+    private String actionLog; //Report problems and successes to user
+    private String outputAttribute; //attribute name for output
     private Feature output;
-    private DefaultListModel listModel;
+    private DefaultListModel listModel; //UI components
     private DefaultListModel listModel2;
     private DefaultListModel listModel3;
     private DefaultListModel listModel4;
     private DefaultListModel listModel5;
-    private FeatureList validAttributes;
-    private String currentAdjust1;
-    private String currentAdjust2;
+    private FeatureList validAttributes; //feature definitions without output definition
+    private String currentAdjust1; //Used to keep track of weights to be changed/displayed
+    private String currentAdjust2; //Used to keep track of weights to be changed/displayed
+    private Map<String,String> missingValues; //Used in imputation of missing values
     
     public MainWindow() {
         initComponents();
@@ -632,12 +640,12 @@ public class MainWindow extends javax.swing.JFrame {
                         .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                             .add(outputLabel)
                             .add(outputField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 8, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                             .add(outputLabel1)
                             .add(similarityField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                     .add(jScrollPane14, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 379, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(43, 43, 43))
+                .addContainerGap(44, Short.MAX_VALUE))
         );
 
         factsPane.addTab("Knowledge Base", jPanel2);
@@ -1022,9 +1030,11 @@ public class MainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_infoGainFieldActionPerformed
     
+    //Make selection from fact attribute list
     private void factsAttributeListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_factsAttributeListValueChanged
-        factValue.removeAllItems();
+        //Redraw fact value combobox for new selected attribute, redraw information gain text field
         if(factsAttributeList.getSelectedValue() != null){
+            factValue.removeAllItems();
             String attribute = factsAttributeList.getSelectedValue().toString();
             Feature currentFeature = featureDefinitions.find(attribute);
             List<Property> properties = currentFeature.getProperties();
@@ -1053,6 +1063,7 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_factsAttributeListValueChanged
     
+    //Update query case based on new attribute value
     private void updateCaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCaseActionPerformed
         if(factsAttributeList.getSelectedValue() != null){
             String newVal = factValue.getSelectedItem().toString();
@@ -1072,17 +1083,18 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_updateCaseActionPerformed
 
+    
     private void outputFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_outputFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_outputFieldActionPerformed
 
+    //Redraw elements of knowledge base panel
     private void casesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_casesListValueChanged
         if(casesList.getSelectedValue() != null){
             Case caseName = knowledgeBase.find(casesList.getSelectedValue().toString());
             outputLabel.setText(caseName.getOutputCopy().getAttribute()+":");
             outputField.setText(caseName.getOutputCopy().getValue());
-            String sim = "" + caseName.getSimilarity();
-            similarityField.setText(sim);
+            similarityField.setText(Double.toString(caseName.getSimilarity()));
             List<Fact> facts = caseName.getFactListCopy();
             listModel3 = new DefaultListModel();
             featuresList.setModel(listModel3);
@@ -1098,6 +1110,7 @@ public class MainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_similarityFieldActionPerformed
 
+    //Update display of attribute value for case
     private void featuresListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_featuresListValueChanged
         if((casesList.getSelectedValue() != null) && (featuresList.getSelectedValue() != null)){
             Case caseName = knowledgeBase.find(casesList.getSelectedValue().toString());
@@ -1107,12 +1120,14 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_featuresListValueChanged
 
+    //Update feature weights on button press
     private void adjustButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_adjustButtonActionPerformed
         updateWeights(wNone.isSelected(),wOne.isSelected(),wBoth.isSelected());
         actionLog = "Weights updated! ";
         update();
     }//GEN-LAST:event_adjustButtonActionPerformed
 
+    //Populate first weight field
     private void attributeField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attributeField1ActionPerformed
         if(attributeField1.getItemCount() != 0){
             String feature = attributeField1.getSelectedItem().toString();
@@ -1122,6 +1137,7 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_attributeField1ActionPerformed
 
+    //Populate second weight field
     private void attributeField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attributeField2ActionPerformed
         if(attributeField2.getItemCount() != 0){
             String feature = attributeField2.getSelectedItem().toString();
@@ -1131,24 +1147,28 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_attributeField2ActionPerformed
 
+    //'None' radio button selected
     private void wNoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wNoneActionPerformed
         wNone.setSelected(true);
         wOne.setSelected(false);
         wBoth.setSelected(false);
     }//GEN-LAST:event_wNoneActionPerformed
 
+    //'Both' radio button selected
     private void wBothActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wBothActionPerformed
         wNone.setSelected(false);
         wOne.setSelected(false);
         wBoth.setSelected(true);
     }//GEN-LAST:event_wBothActionPerformed
 
+    //'One' radio button selected
     private void wOneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wOneActionPerformed
         wNone.setSelected(false);
         wOne.setSelected(true);
         wBoth.setSelected(false);
     }//GEN-LAST:event_wOneActionPerformed
 
+    //Redraw property list after attribute selection
     private void attListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_attListValueChanged
         if(attList.getSelectedValue() != null){
             Feature feature = featureDefinitions.find(attList.getSelectedValue().toString());
@@ -1168,6 +1188,7 @@ public class MainWindow extends javax.swing.JFrame {
     private void attPropListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_attPropListValueChanged
     }//GEN-LAST:event_attPropListValueChanged
     
+    //Load knowledge base
     public void openKnowledgeBase(){
         int returnVal = fileChooser.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -1203,6 +1224,7 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
+    //Load query case
     public void openFacts(){
         int returnVal = fileChooser2.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -1238,9 +1260,11 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
+    //Update information gain, similarity, and weights, redraw some form elements
     public void update(){
         if((knowledgeBase != null) && (queryCase != null) && (featureDefinitions != null)){
             calculateInformationGain(knowledgeBase, featureDefinitions);
+            missingAttributes();
             calculateSimilarity(knowledgeBase, query);
             ActionLog.setForeground(Color.blue);
             actionLog += "Updated successfully! ";
@@ -1257,14 +1281,12 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
+    //Calculate similarity metric
     public void calculateSimilarity(CaseBase knowledge, Case query){
-        double numFacts = query.getSize();
-        double totalFeatures = featureDefinitions.getSize() - 1;
         List<Case> caseList = knowledge.getCases();
         for(Case currentCase: caseList){
             List<Fact> queryFactList = query.getFactListCopy();
             Map<String,Feature> featureDefs = featureDefinitions.getFeatureListCopy();
-            double counter = 0;
             double similarity = 0;
             for(Fact queryFact: queryFactList){
                 String attribute = queryFact.getAttribute();
@@ -1272,8 +1294,8 @@ public class MainWindow extends javax.swing.JFrame {
                 String type = featureDefs.get(attribute).getType();
                 double weight = featureDefs.get(attribute).getWeight();
                 if(currentCase.contains(attribute)){
-                    counter++;
                     String baseValue = currentCase.find(attribute).getValue();
+                    //numeric attribute
                     if(type.equals("numeric")){
                         List<Property> propertyList = featureDefs.get(attribute).getPropertiesCopy();
                         double maxValue = 0;
@@ -1288,21 +1310,49 @@ public class MainWindow extends javax.swing.JFrame {
                                 minValue = Double.parseDouble(prop.getValue());
                             }
                         }
+                        // 1 - [(A - B) / (max - min)] used as metric, if A = B --> 1, if A is max & B is min --> 0
                         similarity += weight * (1 - (Math.abs(bValue - qValue) / (maxValue - minValue)));
                     }
+                    //symbolic attribute
                     else{
                         if(queryValue.equals(baseValue)){
-                            similarity += weight * 1;
+                            similarity += weight * 1; //Add one for same value, zero for different value
                         }
                     }
                 }
+                //Missing values are assigned to most common value for symbolic and mean for numeric if in query case and not in kb case
+                else{
+                   String baseValue = missingValues.get(attribute);
+                   if(type.equals("numeric")){
+                        List<Property> propertyList = featureDefs.get(attribute).getPropertiesCopy();
+                        double maxValue = 0;
+                        double minValue = 0;
+                        double bValue = Double.parseDouble(baseValue);
+                        double qValue = Double.parseDouble(queryValue);
+                        for(Property prop: propertyList){
+                            if(prop.getName().equals("max")){
+                                maxValue = Double.parseDouble(prop.getValue());
+                            }
+                            else if(prop.getName().equals("min")){
+                                minValue = Double.parseDouble(prop.getValue());
+                            }
+                        }
+                        // 1 - [(A - B) / (max - min)] used as metric, if A = B --> 1, if A is max & B is min --> 0
+                        similarity += weight * (1 - (Math.abs(bValue - qValue) / (maxValue - minValue)));
+                    }
+                    //symbolic attribute
+                    else{
+                        if(queryValue.equals(baseValue)){
+                            similarity += weight * 1; //Add one for same value, zero for different value
+                        }
+                    } 
+                }
             }
-        similarity *= totalFeatures;
-        similarity += (counter / numFacts);
-        similarity /= (totalFeatures + 1); 
-        currentCase.setSimilarity(similarity);
+            //Missing values are assigned a similarity of zero if they appear in kb case and not query case
+            currentCase.setSimilarity(similarity);
         }
         Case[] caseResults = caseList.toArray(new Case[0]);
+        //Sort cases
         Arrays.sort(caseResults);
         listModel2 = new DefaultListModel();
         casesList.setModel(listModel2);
@@ -1313,16 +1363,17 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
+    //Calculate information gain for an attribute
     public void calculateInformationGain(CaseBase knowledge, FeatureList features){
         outputAttribute = knowledge.getCases().get(0).getOutput().getAttribute();
         output = new Feature(features.find(outputAttribute));
+        //remove output
         FeatureList featuresNoOutput = new FeatureList(features);
         featuresNoOutput.remove(outputAttribute);
         List<Property> outputProperties = output.getPropertiesCopy();
-        Map<String,Integer> outputCount = new HashMap<String,Integer>();
+        Map<String,Integer> outputCount = new HashMap<String,Integer>(); //Count number of instances of each output value
         for(Property p: outputProperties){
             outputCount.put(p.getValue(),0);
-            System.out.println(p);
         }
         List<Case> cases = knowledge.getCasesCopy();
         for(Case c: cases){
@@ -1333,24 +1384,24 @@ public class MainWindow extends javax.swing.JFrame {
         }
         Integer[] outputResults;
         outputResults = outputCount.values().toArray(new Integer[0]);
-        double total = 0;
+        double total = 0; //Get total number of instances
         for(int i = 0; i < outputResults.length; i++){
             total += outputResults[i].intValue();
         }
-        double information = 0;
+        double information = 0; //calculate information
         for(int i = 0; i < outputResults.length; i++){
             double num = outputResults[i].intValue();
             information -= (num / total) * log2(num / total);
         }
         String[] outputResults2;
         outputResults2 = outputCount.keySet().toArray(new String[0]);
-        Map<String,Integer> outputIndex = new HashMap<String,Integer>();
+        Map<String,Integer> outputIndex = new HashMap<String,Integer>(); //Stores index for keeping track of an instance's output
         for(int i = 0; i < outputResults2.length; i++){
             outputIndex.put(outputResults2[i],i);
         }
         String[] featuresNoOutputResults;
         featuresNoOutputResults = featuresNoOutput.getFeatureList().keySet().toArray(new String[0]);
-        Map<String,Integer> propertyIndex = new HashMap<String,Integer>();
+        Map<String,Integer> propertyIndex = new HashMap<String,Integer>(); //Stores index for keeping track of a property
         for(int i = 0; i < featuresNoOutput.getSize(); i++){
             if(featuresNoOutput.find(featuresNoOutputResults[i]).getType().equals("symbolic")){
                 List<Property> properties = featuresNoOutput.find(featuresNoOutputResults[i]).getPropertiesCopy();
@@ -1359,12 +1410,13 @@ public class MainWindow extends javax.swing.JFrame {
                         propertyIndex.put(properties.get(j).getValue(),j);
                     }
                 }
-                double[][] propertyCounts= new double[propertyIndex.size()][outputIndex.size()];
+                double[][] propertyCounts= new double[propertyIndex.size()][outputIndex.size()]; //Table of property x output
                 for(int j = 0; j < propertyIndex.size(); j++){
                     for(int k = 0; k < outputIndex.size(); k++){
                         propertyCounts[j][k] = 0;
                     }
                 }
+                //Fill in table
                 for(Case c: cases){
                     String outputValue = c.getOutput().getValue();
                     List<Fact> factList = c.getFactListCopy();
@@ -1375,7 +1427,7 @@ public class MainWindow extends javax.swing.JFrame {
                         }
                     }
                 }
-                double remainder = 0;
+                double remainder = 0; //Calculate remainder
                 for(int j = 0; j < propertyIndex.size(); j++){
                     double propTotal = 0;
                     for(int k = 0; k < outputIndex.size(); k++){
@@ -1388,12 +1440,13 @@ public class MainWindow extends javax.swing.JFrame {
                         }
                     }
                 }
-                double informationGain = information - remainder;
+                double informationGain = information - remainder; //Calculate information gain
                 featuresNoOutput.find(featuresNoOutputResults[i]).setInformationGain(informationGain);
                 propertyIndex.clear();
             }
         }
         Feature[] featuresNoOutputResults2 = featuresNoOutput.getFeatureList().values().toArray(new Feature[0]);
+        //Sort attributes by information gain
         Arrays.sort(featuresNoOutputResults2);
         listModel = new DefaultListModel();
         factsAttributeList.setModel(listModel);
@@ -1403,10 +1456,12 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
+    //Calculate the log base 2 of a number
     public double log2(double num){
         return Math.log(num) / Math.log(2);
     }
     
+    //Update weights
     public void updateWeights(Boolean none, Boolean one, Boolean both){
         validAttributes = new FeatureList(featureDefinitions);
         validAttributes.remove(outputAttribute);
@@ -1472,11 +1527,9 @@ public class MainWindow extends javax.swing.JFrame {
             attributeField2.addItem(vaList[i].getName());
         }
         attributeField2.setSelectedItem(currentAdjust2);
-        /*for(int i = 0; i < vaList.length; i++){
-            System.out.println(vaList[i].getName() + " " + vaList[i].getWeight());
-        }*/
     }
     
+    //Draw the attribute list
     public void drawAttList(){
         Feature[] features = featureDefinitions.getFeatureList().values().toArray(new Feature[0]);
         listModel4 = new DefaultListModel();
@@ -1484,6 +1537,64 @@ public class MainWindow extends javax.swing.JFrame {
         attList.setCellRenderer(new MyListCell4());
         for(int j = 0; j < features.length; j++){
             listModel4.addElement((features[j].getName()));
+        }
+    }
+    
+    //Find the values to use when attributes are missing
+    public void missingAttributes(){
+        Feature[] features = featureDefinitions.getFeatureList().values().toArray(new Feature[0]);
+        Map<String,Integer> counter = new LinkedHashMap<String,Integer>(); //Use map to store counts
+        missingValues = new HashMap<String,String>(); //Use map to keep track of missing value substitutions
+        for(int i = 0; i < features.length; i++){
+            counter.clear();
+            Feature feature = features[i]; //Select feature
+            Boolean isSymbolic = feature.getType().equals("symbolic");
+            List<Property> properties = feature.getPropertiesCopy();
+            double total = 0;
+            double numInstances = 0;
+            for(Property p: properties){
+                if(isSymbolic){
+                    counter.put(p.getValue(),0);
+                }
+            }
+            List<Case> cases = knowledgeBase.getCasesCopy();
+            //Compare feature with every case
+            for(Case c: cases){
+                List<Fact> facts = c.getFactListCopy();
+                for(Fact f: facts){
+                    if(f.getAttribute().equals(feature.getName())){
+                        if(isSymbolic){
+                            int num = counter.get(f.getValue()).intValue();
+                            num++;
+                            counter.remove(f.getValue());
+                            counter.put(f.getValue(), num);
+                        }
+                        if(!isSymbolic){
+                            total += Double.parseDouble(f.getValue());
+                            numInstances++;
+                        }
+                    }
+                }
+            }
+            Integer[] values = counter.values().toArray(new Integer[0]);
+            int max = 0;
+            int element = 0;
+            //Find most common attribute values
+            for(int j = 0; j < values.length; j++){
+                if(values[j].intValue() > max){
+                    max = values[j];
+                    element = j;
+                }
+            }
+            String[] keys = counter.keySet().toArray(new String[0]);
+            //Store replacement values
+            if(!isSymbolic){
+                double average = total / numInstances;
+                missingValues.put(feature.getName(),Double.toString(average));
+            }
+            else{
+                missingValues.put(feature.getName(),keys[element]);
+            }
         }
     }
     

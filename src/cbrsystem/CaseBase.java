@@ -1,9 +1,11 @@
+/*Data structure for case base (a collection of cases)*/
+
 package cbrsystem;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CaseBase {
-    private List<Case> cases;
+    private List<Case> cases; //list of cases embodied in case base
     
     public CaseBase(){
         cases = new ArrayList<Case>();
@@ -25,10 +27,12 @@ public class CaseBase {
         return new ArrayList<Case>(cases);
     }
     
+    //Returns number of cases in case base*/
     public int getSize(){
         return cases.size();
     }
     
+    /* Find a case in the case base given the case's name*/
     public Case find(String inputCase){
         for(Case c: cases){
             if(c.getName().equals(inputCase)){

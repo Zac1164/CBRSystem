@@ -1,9 +1,11 @@
+/*Datastructure for keeping track of feature definitions*/
+
 package cbrsystem;
 import java.util.HashMap;
 import java.util.Map;
 
 public class FeatureList {
-    private Map<String, Feature> features;
+    private Map<String, Feature> features; //map used for quicker lookup
     
     public FeatureList(){
         features = new HashMap<String,Feature>();
@@ -24,17 +26,21 @@ public class FeatureList {
     public void add(Feature feature){
         features.put(feature.getName(),feature);
     }
-    
+        
+    //Remove feature definition based on attribute name
     public void remove(String featureName){
         if(features.containsKey(featureName)){
             features.remove(featureName);
         }
     }
     
+    //Retrieve feature definition based on attribute name
     public Feature find(String featureName){
         return features.get(featureName);
     }
     
+    
+    //Returns number of feature definitions
     public int getSize(){
         return features.size();
     }
