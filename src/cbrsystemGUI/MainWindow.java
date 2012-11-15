@@ -1595,7 +1595,6 @@ public class MainWindow extends javax.swing.JFrame {
             else{
                 missingValues.put(feature.getName(),keys[element]);
             }
-            System.out.println(missingValues);
         }
     }
     
