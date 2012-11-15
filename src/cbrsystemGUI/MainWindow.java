@@ -179,6 +179,8 @@ public class MainWindow extends javax.swing.JFrame {
     private DefaultListModel listModel;
     private DefaultListModel listModel2;
     private DefaultListModel listModel3;
+    private DefaultListModel listModel4;
+    private DefaultListModel listModel5;
     private FeatureList validAttributes;
     private String currentAdjust1;
     private String currentAdjust2;
@@ -247,17 +249,15 @@ public class MainWindow extends javax.swing.JFrame {
         similarityField = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
         jLabel30 = new javax.swing.JLabel();
-        jTextField17 = new javax.swing.JTextField();
+        attType = new javax.swing.JTextField();
         jLabel31 = new javax.swing.JLabel();
         jScrollPane13 = new javax.swing.JScrollPane();
-        jList13 = new javax.swing.JList();
-        jLabel33 = new javax.swing.JLabel();
-        jTextField19 = new javax.swing.JTextField();
+        attPropList = new javax.swing.JList();
         jLabel34 = new javax.swing.JLabel();
-        jTextField20 = new javax.swing.JTextField();
+        attWeight = new javax.swing.JTextField();
         jLabel38 = new javax.swing.JLabel();
         jScrollPane16 = new javax.swing.JScrollPane();
-        jList16 = new javax.swing.JList();
+        attList = new javax.swing.JList();
         attributeField1 = new javax.swing.JComboBox();
         adjust1 = new javax.swing.JTextField();
         attributeField2 = new javax.swing.JComboBox();
@@ -646,35 +646,44 @@ public class MainWindow extends javax.swing.JFrame {
 
         jLabel30.setText("Type:");
 
-        jTextField17.addActionListener(new java.awt.event.ActionListener() {
+        attType.setEditable(false);
+        attType.setBackground(new java.awt.Color(204, 204, 204));
+        attType.setFocusable(false);
+        attType.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField17ActionPerformed(evt);
+                attTypeActionPerformed(evt);
             }
         });
 
         jLabel31.setText("Property:");
 
-        jScrollPane13.setViewportView(jList13);
-
-        jLabel33.setText("Property Value:");
-
-        jTextField19.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField19ActionPerformed(evt);
+        attPropList.setFocusable(false);
+        attPropList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                attPropListValueChanged(evt);
             }
         });
+        jScrollPane13.setViewportView(attPropList);
 
         jLabel34.setText("Weight:");
 
-        jTextField20.addActionListener(new java.awt.event.ActionListener() {
+        attWeight.setEditable(false);
+        attWeight.setBackground(new java.awt.Color(204, 204, 204));
+        attWeight.setFocusable(false);
+        attWeight.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField20ActionPerformed(evt);
+                attWeightActionPerformed(evt);
             }
         });
 
         jLabel38.setText("Attribute List:");
 
-        jScrollPane16.setViewportView(jList16);
+        attList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                attListValueChanged(evt);
+            }
+        });
+        jScrollPane16.setViewportView(attList);
 
         attributeField1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -736,13 +745,9 @@ public class MainWindow extends javax.swing.JFrame {
                         .add(18, 18, 18)))
                 .add(jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel4Layout.createSequentialGroup()
-                        .add(jLabel33)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                        .add(jTextField19))
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel4Layout.createSequentialGroup()
                         .add(jLabel34)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                        .add(jTextField20))
+                        .add(attWeight))
                     .add(jPanel4Layout.createSequentialGroup()
                         .add(jLabel31)
                         .add(0, 0, Short.MAX_VALUE))
@@ -751,7 +756,7 @@ public class MainWindow extends javax.swing.JFrame {
                             .add(org.jdesktop.layout.GroupLayout.LEADING, jPanel4Layout.createSequentialGroup()
                                 .add(jLabel30)
                                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(jTextField17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 298, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                                .add(attType, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 298, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                             .add(jPanel4Layout.createSequentialGroup()
                                 .add(attributeField2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 160, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -782,7 +787,7 @@ public class MainWindow extends javax.swing.JFrame {
                 .add(jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                         .add(jLabel30)
-                        .add(jTextField17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(attType, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .add(jLabel38))
                     .add(jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                         .add(wBoth)
@@ -793,15 +798,11 @@ public class MainWindow extends javax.swing.JFrame {
                     .add(jPanel4Layout.createSequentialGroup()
                         .add(jLabel31)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jScrollPane13, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 276, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .add(jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                            .add(jLabel33)
-                            .add(jTextField19, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .add(jScrollPane13, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jPanel4Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                             .add(jLabel34)
-                            .add(jTextField20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                            .add(attWeight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                     .add(jScrollPane16, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 362, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .add(22, 22, 22))
         );
@@ -1001,17 +1002,13 @@ public class MainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField15ActionPerformed
     
-    private void jTextField20ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField20ActionPerformed
+    private void attWeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attWeightActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField20ActionPerformed
-    
-    private void jTextField19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField19ActionPerformed
+    }//GEN-LAST:event_attWeightActionPerformed
+            
+    private void attTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attTypeActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField19ActionPerformed
-        
-    private void jTextField17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField17ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField17ActionPerformed
+    }//GEN-LAST:event_attTypeActionPerformed
         
     private void caseFeatureValueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseFeatureValueActionPerformed
         // TODO add your handling code here:
@@ -1151,6 +1148,25 @@ public class MainWindow extends javax.swing.JFrame {
         wOne.setSelected(true);
         wBoth.setSelected(false);
     }//GEN-LAST:event_wOneActionPerformed
+
+    private void attListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_attListValueChanged
+        if(attList.getSelectedValue() != null){
+            Feature feature = featureDefinitions.find(attList.getSelectedValue().toString());
+            attType.setText(feature.getType());
+            attWeight.setText(Double.toString(feature.getWeight()));
+            Property[] properties = feature.getPropertiesCopy().toArray(new Property[0]);
+            
+            listModel5 = new DefaultListModel();
+            attPropList.setModel(listModel5);
+            attPropList.setCellRenderer(new MyListCell4());
+            for(int j = 0; j < properties.length; j++){
+                listModel5.addElement(properties[j].getName() + ": " + properties[j].getValue());
+            }
+        }
+    }//GEN-LAST:event_attListValueChanged
+
+    private void attPropListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_attPropListValueChanged
+    }//GEN-LAST:event_attPropListValueChanged
     
     public void openKnowledgeBase(){
         int returnVal = fileChooser.showOpenDialog(this);
@@ -1231,6 +1247,7 @@ public class MainWindow extends javax.swing.JFrame {
             ActionLog.setText(actionLog);
             actionLog = "";
             updateWeights(true,false,false);
+            drawAttList();
         }
         else{
             ActionLog.setForeground(Color.red);
@@ -1242,6 +1259,7 @@ public class MainWindow extends javax.swing.JFrame {
     
     public void calculateSimilarity(CaseBase knowledge, Case query){
         double numFacts = query.getSize();
+        double totalFeatures = featureDefinitions.getSize() - 1;
         List<Case> caseList = knowledge.getCases();
         for(Case currentCase: caseList){
             List<Fact> queryFactList = query.getFactListCopy();
@@ -1279,9 +1297,9 @@ public class MainWindow extends javax.swing.JFrame {
                     }
                 }
             }
-        similarity *= numFacts;
+        similarity *= totalFeatures;
         similarity += (counter / numFacts);
-        similarity /= (numFacts + 1); 
+        similarity /= (totalFeatures + 1); 
         currentCase.setSimilarity(similarity);
         }
         Case[] caseResults = caseList.toArray(new Case[0]);
@@ -1381,7 +1399,6 @@ public class MainWindow extends javax.swing.JFrame {
         factsAttributeList.setModel(listModel);
         factsAttributeList.setCellRenderer(new MyListCell(query));
         for(int j = 0; j < featuresNoOutputResults2.length; j++){
-            String attributeName = featuresNoOutputResults2[j].getName();
             listModel.addElement((featuresNoOutputResults2[j].getName()));
         }
     }
@@ -1455,8 +1472,18 @@ public class MainWindow extends javax.swing.JFrame {
             attributeField2.addItem(vaList[i].getName());
         }
         attributeField2.setSelectedItem(currentAdjust2);
-        for(int i = 0; i < vaList.length; i++){
+        /*for(int i = 0; i < vaList.length; i++){
             System.out.println(vaList[i].getName() + " " + vaList[i].getWeight());
+        }*/
+    }
+    
+    public void drawAttList(){
+        Feature[] features = featureDefinitions.getFeatureList().values().toArray(new Feature[0]);
+        listModel4 = new DefaultListModel();
+        attList.setModel(listModel4);
+        attList.setCellRenderer(new MyListCell4());
+        for(int j = 0; j < features.length; j++){
+            listModel4.addElement((features[j].getName()));
         }
     }
     
@@ -1507,6 +1534,10 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JTextField adjust1;
     private javax.swing.JTextField adjust2;
     private javax.swing.JButton adjustButton;
+    private javax.swing.JList attList;
+    private javax.swing.JList attPropList;
+    private javax.swing.JTextField attType;
+    private javax.swing.JTextField attWeight;
     private javax.swing.JComboBox attributeField1;
     private javax.swing.JComboBox attributeField2;
     private javax.swing.JTextField caseBaseLocation;
@@ -1532,7 +1563,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
-    private javax.swing.JLabel jLabel33;
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel36;
@@ -1544,8 +1574,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
     private javax.swing.JList jList10;
-    private javax.swing.JList jList13;
-    private javax.swing.JList jList16;
     private javax.swing.JList jList8;
     private javax.swing.JList jList9;
     private javax.swing.JMenu jMenu1;
@@ -1571,9 +1599,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField13;
     private javax.swing.JTextField jTextField14;
     private javax.swing.JTextField jTextField15;
-    private javax.swing.JTextField jTextField17;
-    private javax.swing.JTextField jTextField19;
-    private javax.swing.JTextField jTextField20;
     private javax.swing.JTextField outputField;
     private javax.swing.JLabel outputLabel;
     private javax.swing.JLabel outputLabel1;

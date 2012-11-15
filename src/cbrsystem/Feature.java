@@ -66,6 +66,15 @@ public class Feature implements Comparable{
         return informationGain;
     }
     
+    public Property find(String prop){
+        for(Property p: properties){
+            if(p.getName().equals(prop)){
+                return p;
+            }
+        }
+        return new Property();
+    }
+    
     @Override
     public int compareTo(Object feature) {
         Feature tmp = (Feature)feature;
