@@ -1,3 +1,5 @@
+/* Created by Zachary Daniels for the course CSE335: Intelligent Decision Support Systems at Lehigh University*/
+
 package cbrsystemGUI;
 
 import cbrsystem.*;

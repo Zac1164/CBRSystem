@@ -112,10 +112,11 @@ public class Case implements Comparable{
         String output2 = " [";
         for(int  i=0; i < factList.size(); i++){
             output2 += factList.get(i);
-            if(i != (factList.size() - 1)){
+            if(i != (factList.size())){
                 output2 += ",";
             }
         }
+        output2 += output;
         output2 += "]";
         return output2;
     }
